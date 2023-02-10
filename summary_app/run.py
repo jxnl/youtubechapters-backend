@@ -13,3 +13,12 @@ def read_root():
 # the modal and the web app
 app.post("/summarize_youtube")(youtube_summary)
 app.post("/stream_transcription")(stream_transcription)
+
+
+@app.get("/test")
+async def test():
+    import requests
+
+    return requests.get(
+        "https://modal-labs-jyikliv.modal.run/?package_name=torch"
+    ).content

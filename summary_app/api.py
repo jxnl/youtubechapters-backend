@@ -8,10 +8,10 @@ from sse_starlette import EventSourceResponse
 from loguru import logger
 
 
-from batch_summarize import generate_batchs, stream_summaries_from_text
-from youtube import extract_video_id, transcribe_youtube
+from summarize import merge_phrases, stream_summaries_from_text
+from youtube_transcripts import extract_video_id, transcribe_youtube
 from download import download_youtube_video
-from transcribe import transcribe_generator
+from transcribe import whisper_generator
 
 
 def get_async_generator_from_youtube(url: str, openai_api_key: str = None):
@@ -20,17 +20,16 @@ def get_async_generator_from_youtube(url: str, openai_api_key: str = None):
     video_id = extract_video_id(url)
     logger.info(f"Extracted video id {video_id}")
 
-    blocks = transcribe_youtube(video_id)
-
-    batchs = generate_batchs(blocks)
-    generator = stream_summaries_from_text(batchs, openai_api_key)
-    return generator
+    phrases = transcribe_youtube(video_id)
+    phrases = merge_phrases(phrases)
+    phrases = stream_summaries_from_text(phrases, openai_api_key)
+    return phrases
 
 
 def get_generator_transcribe_youtube(url, model):
     # this is a helper function to get a generator that yields transcripts
     path = download_youtube_video(url)
-    generator = transcribe_generator(path, model)
+    generator = whisper_generator(path, model)
     logger.info(f"Transcribing {url} queue returned...")
     return generator
 
@@ -79,7 +78,7 @@ class TranscriptionPayload(BasePayload):
 
 async def stream_transcription(req: TranscriptionPayload, request: Request):
     generator = get_generator_transcribe_youtube(req.url, model=req.model)
-    return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])
+    return stream(generator, req.use_sse, request, data_fn=lambda x: x.text["text"])
 
 
 async def youtube_summary(
@@ -87,4 +86,4 @@ async def youtube_summary(
 ):
     token = open_ai_token_from_auth(authorization)
     async_generator = get_async_generator_from_youtube(req.url, token)
-    return stream(async_generator, req.use_sse, request)
+    return stream(async_generator, req.use_sse, request, data_fn=lambda x: x.text)

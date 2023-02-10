@@ -283,7 +283,7 @@ async def transcribe(
     yield None
 
 
-def transcribe_generator(path, model="tiny") -> AsyncGenerator:
+def whisper_generator(path, model="tiny") -> AsyncGenerator:
     # returns a async generator that yields the transcribed text
     model = whisper.load_model(model)
     async_generator = transcribe(model, path)

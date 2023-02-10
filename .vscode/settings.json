@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "summary_app"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

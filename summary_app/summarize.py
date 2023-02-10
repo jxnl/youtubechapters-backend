@@ -1,9 +1,8 @@
-from typing import List, Tuple
-import asyncio
+from typing import AsyncGenerator, Iterable, List, Tuple
 import openai
 from loguru import logger
 
-from youtube import PhraseBlock
+from phrase_block import PhraseBlock
 
 MAX_BATCHS = 10
 
@@ -19,19 +18,14 @@ def approx_sentences(chunk: str) -> Tuple[str, str]:
     return " ".join(rest), tail
 
 
-async def generate_batchs(
-    transcript: List[PhraseBlock], char_chunk=5000, max_batchs=MAX_BATCHS
-):
-    """
-    Given a list of PhraseBlock, generate a batch of text to be sent to summarization.
-
-    Returns:
-    --------
-    start_time: float
-        The start time of the first phrase in the batch
-    batch: str
-        The text to be sent to summarization
-    """
+async def merge_phrases(
+    transcript: AsyncGenerator[PhraseBlock, None],
+    char_chunk=5000,
+    max_batchs=MAX_BATCHS,
+) -> AsyncGenerator[PhraseBlock, None]:
+    # this function merges phrases into batches of a certain size
+    # Example: ["hello", "world", "this", "is", "a", "test"] -> ["hello world this",  "is a "test"]
+    # this is useful since we can batch summarize the text in chunks
     batchs = 0
     start_time = 0
     acc_tokens = ""
@@ -87,16 +81,18 @@ async def summarize(block: PhraseBlock, openai_api_key=None, engine="text-davinc
     # but its more data and dont think its needed
     async def gen():
         async for chunk in response:
-            yield chunk["choices"][0]["text"]
+            yield PhraseBlock(start=block.start, text=chunk["choices"][0]["text"])
 
     return gen()
 
 
-async def stream_summaries_from_text(blocks, open_api_key=None):
+async def stream_summaries_from_text(
+    blocks: AsyncGenerator[PhraseBlock, None], open_api_key=None
+) -> AsyncGenerator[PhraseBlock, None]:
     # this is an async generator that yields summaries blocks as they are generated
     summarizations = [
         summarize(block, openai_api_key=open_api_key) async for block in blocks
     ]
-    for resp in summarizations:
-        async for cr in await resp:
-            yield cr
+    for summarization in summarizations:
+        async for block in await summarization:
+            yield block
