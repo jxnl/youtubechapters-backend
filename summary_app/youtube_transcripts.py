@@ -34,12 +34,10 @@ async def transcribe_youtube(
         for t in transcript:
             yield PhraseBlock(start=t["start"], text=t["text"])
     except Exception:
-        logger.info(
-            f"usually this means that the video has transcripts disabled, we will have to use whisper instead"
-        )
+        logger.info(f"Video has transcripts disabled, using whisper to transcribe")
         if local:
             logger.info(
-                "downloading video locally... and transcribing with local model"
+                "downloading video locally... and transcribing with local tiny model"
             )
             url = create_youtube_url(video_id)
             path = download_youtube_video(url)
@@ -47,7 +45,7 @@ async def transcribe_youtube(
                 yield PhraseBlock(block["start"], block["text"])
 
         else:
-            logger.info("transcribing with whisper on remote gpu...")
+            logger.info("Calling out to remote gpu")
             async for block in _transcribe_youtube_whisper(video_id):
                 yield block
 

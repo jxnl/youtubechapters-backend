@@ -15,7 +15,7 @@ from download import download_youtube_video
 from transcribe import whisper_generator
 
 
-def async_generator_summary(url: str, openai_api_key: str = None):
+def async_generator_summary(url: str, openai_api_key: str = None, local: bool = False):
     # this is a helper function to get a generator that yields summaries
     # would be nice to have a functional way to do this
     #   url.apply(extract_video_id)
@@ -28,7 +28,7 @@ def async_generator_summary(url: str, openai_api_key: str = None):
     #      )
     logger.info(f"Received request for {url}")
     video_id = extract_video_id(url)
-    phrases = transcribe_youtube(video_id)
+    phrases = transcribe_youtube(video_id, local=local)
     phrases = merge_phrases(phrases)
     phrases = stream_summaries_from_text(phrases, openai_api_key)
     return phrases
@@ -70,14 +70,17 @@ def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
 
 
 @dataclass
-class BasePayload:
+class TranscriptionPayload:
     url: str
     use_sse: bool = False
+    model: str = "tiny"
 
 
 @dataclass
-class TranscriptionPayload(BasePayload):
-    model: str = "tiny"
+class SummaryPayload:
+    url: str
+    use_sse: bool = False
+    local: bool = False
 
 
 async def stream_transcription(req: TranscriptionPayload, request: Request):
@@ -86,8 +89,8 @@ async def stream_transcription(req: TranscriptionPayload, request: Request):
 
 
 async def youtube_summary(
-    req: BasePayload, request: Request, authorization: str = Header(None)
+    req: SummaryPayload, request: Request, authorization: str = Header(None)
 ):
     token = open_ai_token_from_auth(authorization)
-    async_generator = async_generator_summary(req.url, token)
+    async_generator = async_generator_summary(req.url, token, req.local)
     return stream(async_generator, req.use_sse, request, data_fn=lambda x: x.text)

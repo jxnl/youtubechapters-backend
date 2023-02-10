@@ -280,12 +280,9 @@ async def transcribe(
             pbar.update(min(num_frames, seek) - previous_seek_value)
             previous_seek_value = seek
 
-    yield None
-
 
 def whisper_generator(path, model="tiny") -> AsyncGenerator:
     # returns a async generator that yields the transcribed text
     model = whisper.load_model(model)
     async_generator = transcribe(model, path)
-    logger.info("Created task and returning generator and task")
     return async_generator
