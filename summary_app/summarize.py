@@ -59,6 +59,8 @@ async def merge_phrases(
 
 PROMPT = """
 Summarize the following content, only state the facts.
+the content comes from a transcript so if there is information
+that looks like a transcription error, throw it out.
 
 Content:
 {text} 
