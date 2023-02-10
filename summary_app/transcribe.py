@@ -281,8 +281,18 @@ async def transcribe(
             previous_seek_value = seek
 
 
+import time
+
+dlt = whisper.load_model("tiny")
+
+
 def whisper_generator(path, model="tiny") -> AsyncGenerator:
     # returns a async generator that yields the transcribed text
-    model = whisper.load_model(model)
-    async_generator = transcribe(model, path)
+    if model == "tiny":
+        model = dlt
+    else:
+        start = time.time()
+        model = whisper.load_model(model)
+        logger.info(f"Loaded model in {time.time() - start} seconds")
+    async_generator = transcribe(model, path, verbose=True)
     return async_generator

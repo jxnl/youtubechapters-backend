@@ -1,6 +1,10 @@
 import modal
 
-from api import youtube_summary, stream_transcription
+from api import TranscriptionPayload, stream
+from download import download_youtube_video
+from fastapi import Request
+from transcribe import transcribe
+import whisper
 
 
 def download_models():
@@ -32,5 +36,12 @@ image = (
 )
 
 stub = modal.Stub("youtube", image=image)
-stub.webhook(method="POST")(youtube_summary)
-stub.webhook(method="POST", gpu="any")(stream_transcription)
+
+model = whisper.load_model("base")
+
+
+@stub.webhook(method="POST", gpu="any")
+async def stream_transcription(req: TranscriptionPayload, request: Request):
+    path = download_youtube_video(req.url)
+    generator = transcribe(model, path)
+    return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])

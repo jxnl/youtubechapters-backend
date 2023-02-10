@@ -1,3 +1,4 @@
+import asyncio
 from typing import AsyncGenerator, Iterable, List, Tuple
 import openai
 from loguru import logger
@@ -20,7 +21,7 @@ def approx_sentences(chunk: str) -> Tuple[str, str]:
 
 async def merge_phrases(
     transcript: AsyncGenerator[PhraseBlock, None],
-    char_chunk=5000,
+    char_chunk=3000,
     max_batchs=MAX_BATCHS,
 ) -> AsyncGenerator[PhraseBlock, None]:
     # this function merges phrases into batches of a certain size
@@ -34,6 +35,7 @@ async def merge_phrases(
         acc_tokens += " " + phrase.text.strip().replace("\n", " ")
         if len(acc_tokens) > char_chunk:
             batch, tail = approx_sentences(acc_tokens)
+            logger.info(f"Yielding big batch {batch}")
             yield PhraseBlock(start_time, batch)
             batchs += 1
             acc_tokens = tail
@@ -90,9 +92,6 @@ async def stream_summaries_from_text(
     blocks: AsyncGenerator[PhraseBlock, None], open_api_key=None
 ) -> AsyncGenerator[PhraseBlock, None]:
     # this is an async generator that yields summaries blocks as they are generated
-    summarizations = [
-        summarize(block, openai_api_key=open_api_key) async for block in blocks
-    ]
-    for summarization in summarizations:
-        async for block in await summarization:
-            yield block
+    async for block in blocks:
+        async for summary in await summarize(block, openai_api_key=open_api_key):
+            yield summary
