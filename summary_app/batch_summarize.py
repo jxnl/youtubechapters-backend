@@ -5,13 +5,15 @@ from loguru import logger
 
 from youtube import PhraseBlock
 
-MAX_BATCHS = 5
+MAX_BATCHS = 10
 
 
 def approx_sentences(chunk):
     import re
 
     sentences = re.split(r' *[\.\?!][\'"\)\]]* *', chunk)
+    if len(sentences) == 1:
+        return chunk[0], ""
     *rest, tail = sentences[:-1]
     # the last part may be incomplete so we keep it for the next batch
     return " ".join(rest), tail
