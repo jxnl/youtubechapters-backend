@@ -21,7 +21,6 @@ def approx_sentences(chunk: str) -> Tuple[str, str]:
 
 async def merge_phrases(
     transcript: AsyncGenerator[PhraseBlock, None],
-    char_chunk=3000,
     max_batchs=MAX_BATCHS,
 ) -> AsyncGenerator[PhraseBlock, None]:
     # this function merges phrases into batches of a certain size
@@ -30,10 +29,20 @@ async def merge_phrases(
     batchs = 0
     start_time = 0
     acc_tokens = ""
+
     async for phrase in transcript:
-        phrase = PhraseBlock(phrase.start, phrase.text)
         acc_tokens += " " + phrase.text.strip().replace("\n", " ")
-        if len(acc_tokens) > char_chunk:
+
+        if not phrase.from_whisper:
+            # it just means we probs have everything already
+            # so we can just yield the whole thing
+            chunk = 4000
+        else:
+            # this helps show stuff sooner since summarizing
+            # and rendering buys us time.
+            chunk = [300, 600, 1200, 3000, 5000][batchs if batchs < 5 else -1]
+
+        if len(acc_tokens) > chunk:
             batch, tail = approx_sentences(acc_tokens)
             logger.info(f"Yielding big batch {batch}")
             yield PhraseBlock(start_time, batch)

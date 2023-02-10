@@ -7,3 +7,4 @@ class PhraseBlock:
     # in case we want to support whisper
     start: float
     text: str
+    from_whisper: bool = False

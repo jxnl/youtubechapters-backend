@@ -65,8 +65,7 @@ async def _transcribe_youtube_whisper(
     for chunk in r.iter_content(chunk_size=4000):
         try:
             str_chunk = chunk.decode("utf-8")
-            logger.info(f"Decoded chunk {str_chunk}")
-            yield PhraseBlock(start=None, text=str_chunk)
+            yield PhraseBlock(start=None, text=str_chunk, from_whisper=True)
         except Exception as e:
             # this is a hack to handle the case where the last chunk is not a full chunk
             logger.info(f"Error decoding chunk {e}")
