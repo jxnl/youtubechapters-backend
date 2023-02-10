@@ -25,7 +25,7 @@ def create_youtube_url(video_id):
 
 
 async def transcribe_youtube(
-    video_id: str, local=False
+    video_id: str, local=False, model: str = "tiny"
 ) -> AsyncGenerator[PhraseBlock, None]:
     # this function will try to get the transcript from youtube
     try:
@@ -46,21 +46,27 @@ async def transcribe_youtube(
 
         else:
             logger.info("Calling out to remote gpu")
-            async for block in _transcribe_youtube_whisper(video_id):
+            async for block in _transcribe_youtube_whisper(video_id, model):
                 yield block
 
 
-async def _transcribe_youtube_whisper(video_id) -> AsyncGenerator[PhraseBlock, None]:
+async def _transcribe_youtube_whisper(
+    video_id, model
+) -> AsyncGenerator[PhraseBlock, None]:
     # this function will try to get the transcript from whisper on a remote gpu
     url = "https://jxnl--youtube-stream-transcription.modal.run"
 
     youtube = create_youtube_url(video_id)
-    data = {"url": youtube, "use_sse": False, "model": "base"}
+    data = {"url": youtube, "use_sse": False, "model": model}
 
     r = requests.post(url, json=data, stream=True)
     r.raise_for_status()
 
-    for chunk in r.iter_content():
-        # chunk is a byte string.
-        str_chunk = chunk.decode("utf-8")
-        yield PhraseBlock(start=None, text=str_chunk)
+    for chunk in r.iter_content(chunk_size=4000):
+        try:
+            str_chunk = chunk.decode("utf-8")
+            yield PhraseBlock(start=None, text=str_chunk)
+        except Exception as e:
+            # this is a hack to handle the case where the last chunk is not a full chunk
+            logger.info(f"Error decoding chunk {e}")
+            pass
