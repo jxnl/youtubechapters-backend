@@ -42,7 +42,7 @@ async def transcribe_youtube(
             url = create_youtube_url(video_id)
             path = download_youtube_video(url)
             async for block in whisper_generator(path, model="tiny"):
-                yield PhraseBlock(block["start"], block["text"])
+                yield PhraseBlock(block["start"], block["text"], from_whisper=True)
 
         else:
             logger.info("Calling out to remote gpu")
