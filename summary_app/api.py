@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import dataclass
+from typing import Any, AsyncGenerator, Dict
 from fastapi import Header, Request
 from fastapi.responses import StreamingResponse
 from sse_starlette import EventSourceResponse
@@ -14,24 +15,29 @@ from download import download_youtube_video
 from transcribe import whisper_generator
 
 
-def get_async_generator_from_youtube(url: str, openai_api_key: str = None):
+def async_generator_summary(url: str, openai_api_key: str = None):
     # this is a helper function to get a generator that yields summaries
+    # would be nice to have a functional way to do this
+    #   url.apply(extract_video_id)
+    #      .apply(transcribe_youtube)
+    #      .batch(merge_phrases) (acc := "", if acc > batch_size; yield acc; else  acc+= x; acc = [])
+    #      .map(stream_summaries_from_text)
+    #      .tostream(
+    #           use_sse=True,
+    #           cancel_on_disconnect=request.is_disconnected
+    #      )
     logger.info(f"Received request for {url}")
     video_id = extract_video_id(url)
-    logger.info(f"Extracted video id {video_id}")
-
     phrases = transcribe_youtube(video_id)
     phrases = merge_phrases(phrases)
     phrases = stream_summaries_from_text(phrases, openai_api_key)
     return phrases
 
 
-def get_generator_transcribe_youtube(url, model):
+def async_generator_whisper(url, model) -> AsyncGenerator[Dict[str, Any], None]:
     # this is a helper function to get a generator that yields transcripts
-    path = download_youtube_video(url)
-    generator = whisper_generator(path, model)
-    logger.info(f"Transcribing {url} queue returned...")
-    return generator
+    path_to_sound = download_youtube_video(url)
+    return whisper_generator(path_to_sound, model)
 
 
 def open_ai_token_from_auth(auth):
@@ -65,8 +71,6 @@ def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
 
 @dataclass
 class BasePayload:
-    # could contain other things in the future
-    # like whisper configs or openai configs
     url: str
     use_sse: bool = False
 
@@ -77,13 +81,13 @@ class TranscriptionPayload(BasePayload):
 
 
 async def stream_transcription(req: TranscriptionPayload, request: Request):
-    generator = get_generator_transcribe_youtube(req.url, model=req.model)
-    return stream(generator, req.use_sse, request, data_fn=lambda x: x.text["text"])
+    generator = async_generator_whisper(req.url, model=req.model)
+    return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])
 
 
 async def youtube_summary(
     req: BasePayload, request: Request, authorization: str = Header(None)
 ):
     token = open_ai_token_from_auth(authorization)
-    async_generator = get_async_generator_from_youtube(req.url, token)
+    async_generator = async_generator_summary(req.url, token)
     return stream(async_generator, req.use_sse, request, data_fn=lambda x: x.text)

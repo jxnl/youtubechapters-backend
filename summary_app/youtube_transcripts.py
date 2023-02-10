@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from loguru import logger
 
 from download import download_youtube_video
+from phrase_block import PhraseBlock
 from transcribe import whisper_generator
 
 
