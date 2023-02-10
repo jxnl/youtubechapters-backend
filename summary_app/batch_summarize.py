@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import asyncio
 import openai
 from loguru import logger
@@ -8,12 +8,12 @@ from youtube import PhraseBlock
 MAX_BATCHS = 10
 
 
-def approx_sentences(chunk):
+def approx_sentences(chunk: str) -> Tuple[str, str]:
     import re
 
     sentences = re.split(r' *[\.\?!][\'"\)\]]* *', chunk)
     if len(sentences) == 1:
-        return chunk[0], ""
+        return chunk, ""
     *rest, tail = sentences[:-1]
     # the last part may be incomplete so we keep it for the next batch
     return " ".join(rest), tail
