@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "video-summary-streamer"
+version = "0.1.0"
+description = "tools to stream tokens for summary and transcripts"
+authors = ["Jason Liu <jason@jxnl.coA>"]
+readme = "README.md"
+packages = [{include = "video_summary_streamer"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+loguru = "^0.6.0"
+fastapi = "^0.90.1"
+openai = "^0.26.5"
+youtube-transcript-api = "^0.5.0"
+sse-starlette = "^1.2.1"
+uvicorn = "^0.20.0"
+
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+black = "^23.1.0"
+modal-client = "^0.45.1132"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
