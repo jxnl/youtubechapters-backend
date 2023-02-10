@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+summary_app/exploration.ipynb
+.gitignore
+summary_app/.DS_Store
+summary_app/exploration.ipynb
+summary_app/test.py
