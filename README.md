@@ -27,38 +27,52 @@ uvicorn app:run:app --reload
 # Calling the Streaming Endpoints
 You can call the streaming endpoints using the following curl commands:
 
-For regular streaming:
+For regular streaming of summaries.
 
 ```
 curl --no-buffer -X 'POST' \
-  'http://127.0.0.1:8000/youtube'\
+  'http://127.0.0.1:8000/summarize_youtube'\
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <OPENAI_API_TOKEN>' \
-  -d '{
-  "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
-}'
-```
-For SSE with a [DONE] token:
-
-```
-curl --no-buffer -X 'POST' \
-  'http://127.0.0.1:8000/youtube_sse'\
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <OPENAI_API_TOKEN>' \
+  -H 'Authorization: Bearer <OPENAI_API_KEY>' \
   -d '{
   "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
 }'
 ```
 
-# fly.io Deploymeny
+For streaming of Transcripts
+
+```
+curl --no-buffer -X 'POST' \
+  'http://127.0.0.1:8000/stream_transcription'\
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
+  "model": "base"
+}'
+```
+
+Enabling SSE works on both summary and stream endpoints.
+
+```
+curl --no-buffer -X 'POST' \
+  'http://127.0.0.1:8000/stream_transcription'\
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY", 
+  "use_sse": true
+}'
+```
+
+# fly.io Deployment (CPU only)
 
 We also have a deployment on if any wants to just hit it. 
 
 ```
 curl --no-buffer -X 'POST' \
-  'https://video-summary.fly.dev/youtube_sse'\
+  'https://video-summary.fly.dev/summarize_youtube'\
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <OPENAI_API_TOKEN>' \

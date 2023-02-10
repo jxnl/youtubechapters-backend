@@ -66,7 +66,7 @@ async def summarize(block: PhraseBlock, openai_api_key=None, engine="text-davinc
     Summarize a text using OpenAI. This is a generator that yields
     the summaries as they are generated.
     """
-    logger.info("Summarizing text with OpenAI")
+    logger.info(f"Summarizing text with OpenAI of length: {len(block.text)}")
     if openai_api_key is not None:
         openai.api_key = openai_api_key
     # Create a completion generator
@@ -92,16 +92,7 @@ async def summarize(block: PhraseBlock, openai_api_key=None, engine="text-davinc
 
 
 async def stream_summaries_from_text(blocks, open_api_key=None):
-    """
-    Stream summaries from a text. This is a generator that yields
-    the summaries as they are generated.
-
-    Parameters
-    ----------
-    text: str
-        The text to summarize
-    batch_size: int
-        The number of characters to send to OpenAI at a time."""
+    # this is an async generator that yields summaries blocks as they are generated
     completion = await asyncio.gather(
         *[summarize(block, openai_api_key=open_api_key) async for block in blocks]
     )
