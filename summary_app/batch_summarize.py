@@ -47,7 +47,7 @@ async def generate_batchs(
             logger.info("Reached max batchs")
             yield PhraseBlock(start_time, batch)
             break
-    yield PhraseBlock(start_time, batch)
+    yield PhraseBlock(start_time, acc_tokens)
 
 
 PROMPT = """
