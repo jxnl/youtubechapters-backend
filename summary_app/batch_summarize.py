@@ -53,13 +53,12 @@ async def generate_batchs(
 
 
 PROMPT = """
-You are a writer tasked with summarizing the piece of the transcript for a video h
-ere is a part of the transcript, make sure to match the tone of the vide:
+Summarize the following content, only state the facts.
 
-Video:
+Content:
 {text} 
 
-Summary:
+Overview:
 """
 
 
@@ -95,9 +94,9 @@ async def summarize(block: PhraseBlock, openai_api_key=None, engine="text-davinc
 
 async def stream_summaries_from_text(blocks, open_api_key=None):
     # this is an async generator that yields summaries blocks as they are generated
-    completion = await asyncio.gather(
-        *[summarize(block, openai_api_key=open_api_key) async for block in blocks]
-    )
-    for resp in completion:
-        async for cr in resp:
+    summarizations = [
+        summarize(block, openai_api_key=open_api_key) async for block in blocks
+    ]
+    for resp in summarizations:
+        async for cr in await resp:
             yield cr
