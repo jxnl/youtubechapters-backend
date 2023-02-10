@@ -1,33 +1,34 @@
-# Youtube Summarizer 
+# Youtube Summarizer
+This FastAPI YouTube summary app utilizes two key features to improve speed and efficiency:
 
-This fastapi application takes advantage of two things to be fast. currently it cannot summarize youtube videos without transcripts. It also does not use the timestamps, which would be room for improvement.
+1. The app takes advantage of YouTube video transcripts, which can be easily retrieved via the YouTube Transcript API.
+To tokenize the video text, the app uses regular expressions as a tokenizer, instead of using more complex natural language processing tools like spacy or nltk. The text is then divided into N_BATCH tokens and the summarization process is performed in parallel, with the results being combined at the end (MAP-REDUCE).
 
-## Why its 'fast' 
-1. youtube videos may have transcripts that can be pulled via the transcript api, the transcript api along with whisper api will both contain phrases with {start_time, text} which could be used to improve summaries.
-2. we can use regular expressions as a tokenizer to approximate sentence boundaries, we could use something like spacy or nltk but it would just take longer
+2. The summarized batches could be combined into a single batch, but this would result in a longer wait time for the first summary token to appear.
 
-### How whisper transcriptions could be faster
+# Improving Whisper Transcriptions for Faster Summarization
+One possible future improvement to the app (which would allow us to do all audio and all video) is to figure out how to stream whisper transcriptions, which would allow for faster summarization by summarizing the first n_tokens of the whisper transcriptions. This would result in a shorter wait time for the first summary token, bounded by the time to download the video and the time to produce the `n_tokens`.
 
-If we can figure out how to stream whisper transcriptions then we can start summarizing on the first `n_tokens` of whipser, making the time to first summarization token bounded to some extend by `time_to_download_video + time_to_produce_n_tokens`
-
-## Running it yourself
+# Running the App
+To run the app, simply run the following commands:
 
 ```
 pip install -r requirements.txt
-# if you use poetry
+# If you use poetry, run the following instead:
 # poetry init
 ```
 
-## Running the Summary App
+Then, navigate to the `summary_app` directory and run the following command:
 
 ```
-cd summary_app
 uvicorn app:run:app --reload
 ```
 
-## Calling the streaming endpoints
+# Calling the Streaming Endpoints
+You can call the streaming endpoints using the following curl commands:
 
-Usual streaming
+For regular streaming:
+
 ```
 curl --no-buffer -X 'POST' \
   'http://127.0.0.1:8000/youtube'\
@@ -38,8 +39,8 @@ curl --no-buffer -X 'POST' \
   "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
 }'
 ```
+For SSE with a [DONE] token:
 
-With SSE and `[DONE]` token, this is just made to look more like OPENAI's response.
 ```
 curl --no-buffer -X 'POST' \
   'http://127.0.0.1:8000/youtube_sse'\
@@ -51,9 +52,7 @@ curl --no-buffer -X 'POST' \
 }'
 ```
 
-## Future work
-
-1. support whisper transcription
-2. support streaming whisper transcription
-3. design a way to use time stamps. (maybe yield `[t=12s]` token? )
-  * in SSE we could return `{data: data, is_time: bool}`???
+# Future Work
+1. Support for whisper transcriptions for all audio and video.
+2. Streaming of whisper transcriptions for all audio and video.
+3. A way to incorporate time stamps into the summary. (e.g. by including [t=12s] tokens?). In SSE, a possible implementation could be to return {data: data, is_time: bool}.
