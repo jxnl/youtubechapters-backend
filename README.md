@@ -52,6 +52,21 @@ curl --no-buffer -X 'POST' \
 }'
 ```
 
+# fly.io Deploymeny
+
+We also have a deployment on if any wants to just hit it. 
+
+```
+curl --no-buffer -X 'POST' \
+  'https://video-summary.fly.dev/youtube_sse'\
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <OPENAI_API_TOKEN>' \
+  -d '{
+  "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
+}'
+```
+
 # Future Work
 1. Support for whisper transcriptions for all audio and video.
 2. Streaming of whisper transcriptions for all audio and video.
