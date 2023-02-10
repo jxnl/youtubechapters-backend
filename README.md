@@ -66,7 +66,7 @@ curl --no-buffer -X 'POST' \
 }'
 ```
 
-# fly.io Deployment (CPU only)
+# fly.io Deployment (Avoid transcription since its CPU only)
 
 We also have a deployment on if any wants to just hit it. 
 
@@ -78,6 +78,30 @@ curl --no-buffer -X 'POST' \
   -H 'Authorization: Bearer <OPENAI_API_TOKEN>' \
   -d '{
   "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY"
+}'
+```
+
+# Modal Deployment 
+
+```
+curl --no-buffer -X 'POST' \
+  'https://jxnl--youtube-stream-transcription.modal.run'\
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "url": "https://www.youtube.com/watch?v=9Q9_CQxFUKY",
+  "model": "base",
+  "use_sse": false
+}'
+
+curl --no-buffer -X 'POST' \
+  'https://jxnl--youtube-stream-transcription-dev.modal.run'\
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "url": "https://www.youtube.com/watch?v=FECyn_sGk4M",
+  "model": "base",
+  "use_sse": false
 }'
 ```
 
