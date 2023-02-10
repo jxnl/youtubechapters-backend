@@ -93,6 +93,7 @@ async def summarize(block: PhraseBlock, openai_api_key=None, engine="text-davinc
     async def gen():
         async for chunk in response:
             yield PhraseBlock(start=block.start, text=chunk["choices"][0]["text"])
+        yield PhraseBlock(start=block.start, text=" ")
 
     return gen()
 
