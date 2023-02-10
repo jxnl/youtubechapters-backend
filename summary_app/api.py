@@ -15,8 +15,8 @@ async def get_async_generator_from_youtube(url: str, openai_api_key: str = None)
         # if we can't get the transcript, we can't summarize it
         # so we raise an error, eventually this will be handled
         # by requesting a transcription by whisper
-        blocks = await transcribe_youtube(video_id)
-    except:
+        blocks = transcribe_youtube(video_id)
+    except Exception as e:
         logger.exception(e)
         raise ValueError("Video transcript not found on youtube")
 

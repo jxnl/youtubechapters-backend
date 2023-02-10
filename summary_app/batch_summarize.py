@@ -52,9 +52,9 @@ async def generate_batchs(
 
 PROMPT = """
 You are a writer tasked with summarizing the piece of the transcript for a video h
-ere is a part of the transcript make sure to match the tone of the transcript:
+ere is a part of the transcript, make sure to match the tone of the vide:
 
-Transcript:
+Video:
 {text} 
 
 Summary:

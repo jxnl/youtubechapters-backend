@@ -26,6 +26,11 @@ def open_ai_token_from_auth(auth):
     return token
 
 
+@app.get("/healthcheck")
+def read_root():
+    return {"status": "ok"}
+
+
 @app.post("/youtube")
 async def youtube(
     req: SummaryPayload, authorization: str = Header(None)
