@@ -36,11 +36,11 @@ async def merge_phrases(
         if not phrase.from_whisper:
             # it just means we probs have everything already
             # so we can just yield the whole thing
-            chunk = 5000
+            chunk = 6000
         else:
             # this helps show stuff sooner since summarizing
             # and rendering buys us time.
-            chunk = [500, 600, 1200, 3000, 5000][batchs if batchs < 5 else -1]
+            chunk = [500, 600, 1200, 4000, 6000][batchs if batchs < 5 else -1]
 
         if len(acc_tokens) > chunk:
             # batch, tail = approx_sentences(acc_tokens)
@@ -60,14 +60,13 @@ async def merge_phrases(
 
 
 PROMPT = """
-Summarize the following content, only state the facts.
-the content comes from a transcript so if there is information
-that looks like a transcription error, throw it out.
+Summarize the following content, only include information from the content and state the facts.
+the content comes from a transcription anything looks like a transcription error, throw it out.
 
 Content:
 {text} 
 
-Overview:
+Summary:
 """
 
 
