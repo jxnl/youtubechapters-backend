@@ -55,7 +55,7 @@ def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
             async for obj in generator:
                 if obj and not await request.is_disconnected():
                     data = data_fn(obj)
-                    yield {"data": data} if use_sse else data
+                    yield {"data": str(data)} if use_sse else str(data)
             if use_sse:
                 yield {"data": "[DONE]"}
         except asyncio.CancelledError as e:
