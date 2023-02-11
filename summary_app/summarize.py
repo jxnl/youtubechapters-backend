@@ -14,7 +14,7 @@ def approx_sentences(chunk: str) -> Tuple[str, str]:
     sentences = re.split(r' *[\.\?!][\'"\)\]]* *', chunk)
     if len(sentences) == 1:
         return chunk, ""
-    *rest, tail = sentences[:-1]
+    *rest, tail = sentences
     # the last part may be incomplete so we keep it for the next batch
     return " ".join(rest), tail
 
@@ -36,15 +36,17 @@ async def merge_phrases(
         if not phrase.from_whisper:
             # it just means we probs have everything already
             # so we can just yield the whole thing
-            chunk = 4000
+            chunk = 5000
         else:
             # this helps show stuff sooner since summarizing
             # and rendering buys us time.
-            chunk = [300, 600, 1200, 3000, 5000][batchs if batchs < 5 else -1]
+            chunk = [500, 600, 1200, 3000, 5000][batchs if batchs < 5 else -1]
 
         if len(acc_tokens) > chunk:
-            batch, tail = approx_sentences(acc_tokens)
-            logger.info(f"Yielding big batch {batch}")
+            # batch, tail = approx_sentences(acc_tokens)
+            batch = acc_tokens  #
+            tail = ""
+            logger.info(f"{len(acc_tokens)}, {batch}")
             yield PhraseBlock(start_time, batch)
             batchs += 1
             acc_tokens = tail
