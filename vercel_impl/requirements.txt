@@ -1,0 +1,5 @@
+fastapi
+loguru 
+sse-starlette
+uvicorn
+youtube-transcript-api
