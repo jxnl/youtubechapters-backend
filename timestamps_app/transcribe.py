@@ -51,14 +51,18 @@ async def _transcribe_youtube_whisper(video_id, model) -> AsyncGenerator[Segment
 
     for chunk in r.iter_content(chunk_size=40000):
         try:
-            data = json.loads(chunk.decode("utf-8").split(":", 1)[1])
-            yield Segment(
-                start_time=data["start"],
-                end_time=data["end"],
-                transcript=data["text"],
-                from_whisper=True,
-            )
+            data = chunk.decode("utf-8").split(":", 1)[1].trim()
+            if data.trim() == "[DONE]":
+                logger.info("Done with transcription")
+                yield None
+            else:
+                data = json.loads(data)
+                yield Segment(
+                    start_time=data["start"],
+                    end_time=data["end"],
+                    transcript=data["text"],
+                    from_whisper=True,
+                )
         except Exception as e:
-            # this is a hack to handle the case where the last chunk is not a full chunk
             logger.info(f"Error decoding chunk {e}")
             pass
