@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator
 
-from timestamps_app.md_summarize import summarize_transcript
+from md_summarize import summarize_transcript
 
 
 @dataclass
@@ -28,11 +28,17 @@ class Segment:
         )
 
 
-def group_speech_segments(segments: List[Segment], max_length=300):
-    current_transcript = segments[0].transcript
-    current_start_time = segments[0].start_time
+async def group_speech_segments(
+    segments: AsyncGenerator[Segment, None], max_length=300
+):
+    current_segment = await segments.__anext__()
+    current_transcript = current_segment.transcript
+    current_start_time = current_segment.start_time
 
-    for previous_segment, current_segment in zip(segments[:-1], segments[1:]):
+    async for segment in segments:
+        previous_segment = current_segment
+        current_segment = segment
+
         is_pause = (current_segment.start_time - previous_segment.end_time) > 0.01
         is_long = current_segment.start_time - current_start_time > 1
         is_too_long = len(current_transcript) > max_length
@@ -50,7 +56,7 @@ def group_speech_segments(segments: List[Segment], max_length=300):
 
     yield Segment(
         start_time=current_start_time,
-        end_time=segments[-1].end_time,
+        end_time=current_segment.end_time,
         transcript=current_transcript.strip(),
     )
 
@@ -59,7 +65,7 @@ async def summary_segments_to_md(
     segments, video_id=None, openai_api_key=None, chunk=4000
 ):
     text = ""
-    for block in segments:
+    async for block in segments:
         if len(text) < chunk:
             text += "\n\n" + block.to_str(video_id)
         else:
