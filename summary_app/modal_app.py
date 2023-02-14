@@ -1,3 +1,4 @@
+import json
 import modal
 
 from api import TranscriptionPayload, stream
@@ -45,3 +46,21 @@ async def stream_transcription(req: TranscriptionPayload, request: Request):
     path = download_youtube_video(req.url)
     generator = transcribe(model, path)
     return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])
+
+
+@stub.webhook(method="POST", gpu="any")
+async def stream_transcription_segment(req: TranscriptionPayload, request: Request):
+    path = download_youtube_video(req.url)
+    generator = transcribe(model, path)
+    return stream(
+        generator,
+        req.use_sse,
+        request,
+        data_fn=lambda x: json.dumps(
+            dict(
+                start=x["start"],
+                text=x["text"],
+                end=x["end"],
+            )
+        ),
+    )
