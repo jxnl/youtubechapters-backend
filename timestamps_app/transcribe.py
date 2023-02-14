@@ -13,17 +13,17 @@ def create_youtube_url(video_id):
 
 
 async def transcribe_youtube(
-    video_id: str, use_whisper=False, model: str = "tiny"
+    video_id: str, use_whisper=False, model: str = "base"
 ) -> AsyncGenerator[Segment, None]:
     if use_whisper:
-        logger.info("Calling out to remote gpu")
+        logger.info(f"Forcing whisper: calling out to remote gpu for {video_id}")
         async for block in _transcribe_youtube_whisper(video_id, model):
             yield block
     else:
         # this function will try to get the transcript from youtube
         try:
             transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            logger.info("transcript found on youtube no need to download video")
+            logger.info("Transcript found on youtube no need to download video")
             for t in transcript:
                 yield Segment(
                     start_time=t["start"],
@@ -34,7 +34,7 @@ async def transcribe_youtube(
             logger.info(
                 f"Video has transcripts disabled, using whisper to transcribe {e}"
             )
-            logger.info("Calling out to remote gpu")
+            logger.info(f"Fallback whisper: calling out to remote gpu for {video_id}")
             async for block in _transcribe_youtube_whisper(video_id, model):
                 yield block
 

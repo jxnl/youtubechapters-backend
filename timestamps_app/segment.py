@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import AsyncGenerator
-
+from loguru import logger
 from md_summarize import summarize_transcript
 
 
@@ -34,6 +34,7 @@ async def group_speech_segments(
     current_segment = await segments.__anext__()
     current_transcript = current_segment.transcript
     current_start_time = current_segment.start_time
+    from_whisper = current_segment.from_whisper
 
     async for segment in segments:
         previous_segment = current_segment
@@ -48,6 +49,7 @@ async def group_speech_segments(
                 start_time=current_start_time,
                 end_time=previous_segment.end_time,
                 transcript=current_transcript.strip(),
+                from_whisper=from_whisper,
             )
             current_transcript = ""
             current_start_time = current_segment.start_time
@@ -58,6 +60,7 @@ async def group_speech_segments(
         start_time=current_start_time,
         end_time=current_segment.end_time,
         transcript=current_transcript.strip(),
+        from_whisper=from_whisper,
     )
 
 
@@ -65,16 +68,30 @@ async def summary_segments_to_md(
     segments, video_id=None, openai_api_key=None, chunk=4000
 ):
     text = ""
+    n_calls = 0
     async for block in segments:
+        if block.from_whisper:
+            # instead of using the chunk size, this gets us
+            # faster results by using a smaller chunk size
+            chunk = [500, 1000, 3000, 4000][n_calls if n_calls < 4 else -1]
+            logger.info(f"Setting chunk size to {chunk} for {video_id}")
+
         if len(text) < chunk:
-            text += "\n\n" + block.to_str(video_id)
+            text += f"\n\n{block.to_str(video_id)}"
+            logger.info(
+                f"Building summary request for {video_id}, request size: {len(text)}"
+            )
         else:
+            n_calls += 1
+            logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
             async for token in await summarize_transcript(
                 text, openai_api_key=openai_api_key
             ):
                 yield token
             text = ""
     if text != "":
+        n_calls += 1
+        logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
         async for token in await summarize_transcript(
             text, openai_api_key=openai_api_key
         ):

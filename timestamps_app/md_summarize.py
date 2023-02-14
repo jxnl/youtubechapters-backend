@@ -8,7 +8,7 @@ To format the markdown file, please follow this structure:
 markdown
     # [HH:MM:SS](https://youtu.be/video_id?t=XXs) Descriptive Title
 
-    A brief overview of the topic, the purpose and main points that will be covered in more detail.
+    <A brief overview of the topic>
 
     **Subtitle for Key Points**
 
@@ -20,7 +20,7 @@ markdown
 When writing your markdown file, please keep in mind the following tips:
 
 * Titles should be descriptive and provide a clear summary of the topic. Avoid using 2-3 word titles.
-* After each header, leave a brief overview of the topic before diving into specific details.
+* After each header, leave a concise overview of the topic (2-3 sentences)
 * Use bullet points for detailing important steps and insights. Be as detailed and comprehensive as possible.
 * If a transcript block is short or repeated, merge them into one block to avoid repetition and make the content easier to understand.
 * Cite and include timestamps whenever possible by linking to the relevant URL in a block. This will allow readers to easily reference the original transcript.
