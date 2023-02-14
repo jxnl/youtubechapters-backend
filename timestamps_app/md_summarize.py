@@ -25,6 +25,7 @@ When writing your markdown file, please keep in mind the following tips:
 * If a transcript block is short or repeated, merge them into one block to avoid repetition and make the content easier to understand.
 * Cite and include timestamps whenever possible by linking to the relevant URL in a block. This will allow readers to easily reference the original transcript.
 * Do not use the same timestamp twice in the markdown file.
+* Only include points that were mentioned in the transcript. Do not add any additional information or insights.
 
 
 Content:
