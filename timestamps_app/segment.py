@@ -65,7 +65,7 @@ async def group_speech_segments(
 
 
 async def summary_segments_to_md(
-    segments, video_id=None, openai_api_key=None, chunk=4000
+    segments, video_id=None, openai_api_key=None, chunk=5000
 ):
     text = ""
     n_calls = 0
@@ -78,17 +78,17 @@ async def summary_segments_to_md(
 
         if len(text) < chunk:
             text += f"\n\n{block.to_str(video_id)}"
-            logger.info(
-                f"Building summary request for {video_id}, request size: {len(text)}"
-            )
         else:
             n_calls += 1
-            logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
+            logger.info(
+                f"Making summary request for {video_id}, requet_size: {len(text)}, n_calls: {n_calls}"
+            )
             async for token in await summarize_transcript(
                 text, openai_api_key=openai_api_key
             ):
                 yield token
             text = ""
+            logger.info(f"Finished n={n_calls} summary request for {video_id}")
     if text != "":
         n_calls += 1
         logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
@@ -96,3 +96,4 @@ async def summary_segments_to_md(
             text, openai_api_key=openai_api_key
         ):
             yield token
+    logger.info(f"Finished summary request for {video_id} in {n_calls} calls")
