@@ -16,12 +16,19 @@ markdown:
     * Detailed description of key point 1, including any relevant information and insights.
     * Detailed description of key point 2, including any relevant information and insights.
 
-    ...
+    # [HH:MM:SS](https://youtu.be/video_id?t=XXs) Descriptive Title
 
-When writing your markdown file, please keep in mind the following tips:
+    ... (this can be repeated as many times as necessary you are allowed to use subheadings)
 
+
+
+Tips:
+
+* Do not include any information that is not in the transcript.
+* Pay attention to the key points the speaker is making and take notes as you go.
+* You can organize your notes into subheadings or bullet points to make it easier to read and understand, use timestamps to link to the relevant part of the video)
 * Titles should be descriptive. Avoid using 2-3 word titles.
-* After each header, leave a concise overview of the topic (2-3 sentences)
+* If there are certain phrases or quotes that stand out to you, highlight them in your notes. This can help you remember them later or use them as evidence
 * Use bullet points for detailing important steps and insights. Be as detailed and comprehensive as possible.
 * Avoid repeating yourself, in either the content or the timestamp.
 * Cite and include timestamps whenever possible by linking to the relevant URL in a block. 
