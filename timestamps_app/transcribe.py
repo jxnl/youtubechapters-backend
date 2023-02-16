@@ -54,7 +54,6 @@ async def _transcribe_youtube_whisper(video_id, model) -> AsyncGenerator[Segment
             data = chunk.decode("utf-8").split(":", 1)[1]
             if data.strip() == "[DONE]":
                 logger.info("Done with transcription")
-                yield None
             else:
                 data = json.loads(data)
                 yield Segment(
