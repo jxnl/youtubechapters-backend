@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import Header, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
-from segment import group_speech_segments, summary_segments_to_md
+from segment import group_speech_segments, shorten_summary_to_md, summary_segments_to_md
 from sse_starlette import EventSourceResponse
 from transcribe import transcribe_youtube
 
@@ -32,6 +32,11 @@ def async_generator_summary_timestamps(
     phrases = summary_segments_to_md(
         phrases, openai_api_key=openai_api_key, video_id=video_id
     )
+    return phrases
+
+
+def async_generator_summary_shorten(content: str, openai_api_key):
+    phrases = shorten_summary_to_md(content, openai_api_key=openai_api_key)
     return phrases
 
 
@@ -71,6 +76,12 @@ class SummaryPayload:
     use_whisper: bool = False
 
 
+@dataclass
+class ShortenPayload:
+    content: str
+    use_sse: bool = False
+
+
 async def youtube_summary_md(
     req: SummaryPayload, request: Request, authorization: str = Header(None)
 ):
@@ -81,9 +92,18 @@ async def youtube_summary_md(
     return stream(async_generator, req.use_sse, request, data_fn=lambda x: x)
 
 
+async def shorten_summary(
+    req: ShortenPayload, request: Request, authorization: str = Header(None)
+):
+    token = open_ai_token_from_auth(authorization)
+    async_generator = async_generator_summary_shorten(req.content, token)
+    return stream(async_generator, req.use_sse, request, data_fn=lambda x: x)
+
+
 import fastapi
 
 app = fastapi.FastAPI()
 
 app.post("/youtube_markdown")(youtube_summary_md)
+app.post("/shorten_markdown")(shorten_summary)
 app.post("/check")

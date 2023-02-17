@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import AsyncGenerator
 
 from loguru import logger
+from md_shorten import shorten_md
 from md_summarize import summarize_transcript
 
 
@@ -63,6 +64,25 @@ async def group_speech_segments(
         transcript=current_transcript.strip(),
         from_whisper=from_whisper,
     )
+
+
+async def shorten_summary_to_md(content: str, openai_api_key: str):
+    text = ""
+
+    chapters = content.strip().split("# ")
+
+    for chapter in chapters:
+        if len(text) > 5000:
+            logger.info(f"Shortening {len(text)} characters")
+            async for token in await shorten_md(text, openai_api_key=openai_api_key):
+                yield token
+            text = ""
+        else:
+            text += f"\n\n# {chapter}"
+    if text != "":
+        logger.info(f"Shortening {len(text)} characters")
+        async for token in await shorten_md(text, openai_api_key=openai_api_key):
+            yield token
 
 
 async def summary_segments_to_md(
