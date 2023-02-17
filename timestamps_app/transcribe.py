@@ -1,11 +1,10 @@
 import json
-import requests
-
-from loguru import logger
 from typing import AsyncGenerator
-from youtube_transcript_api import YouTubeTranscriptApi
 
+import requests
+from loguru import logger
 from segment import Segment
+from youtube_transcript_api import YouTubeTranscriptApi
 
 
 def create_youtube_url(video_id):

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import AsyncGenerator
+
 from loguru import logger
 from md_summarize import summarize_transcript
 

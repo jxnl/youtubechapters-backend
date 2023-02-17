@@ -2,29 +2,29 @@ import asyncio
 import json
 import re
 from dataclasses import dataclass
+from typing import Optional
+
 from fastapi import Header, Request
 from fastapi.responses import StreamingResponse
-from sse_starlette import EventSourceResponse
-
-
 from loguru import logger
-
 from segment import group_speech_segments, summary_segments_to_md
+from sse_starlette import EventSourceResponse
 from transcribe import transcribe_youtube
 
 
-def extract_video_id(url):
+def extract_video_id(url: str) -> str:
     match = re.search(
         r"^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$",
         url,
     )
     if match:
         return match.group(1)
-    return None
+    else:
+        raise ValueError("Invalid youtube url")
 
 
 def async_generator_summary_timestamps(
-    url: str, use_whisper: bool = False, openai_api_key: str = None
+    url: str, use_whisper: bool = False, openai_api_key: Optional[str] = None
 ):
     video_id = extract_video_id(url)
     phrases = transcribe_youtube(video_id, use_whisper)
@@ -59,7 +59,7 @@ def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
 
     response = EventSourceResponse if use_sse else StreamingResponse
     return response(
-        stream_obj(),
+        stream_obj(),  # type: ignore
         media_type="text/plain",
     )
 

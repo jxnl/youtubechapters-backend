@@ -1,3 +1,6 @@
+import asyncio
+from typing import AsyncGenerator, Optional
+
 import openai
 
 PROMPT = """
@@ -43,12 +46,15 @@ Study Guide:
 
 
 async def summarize_transcript(
-    txt, openai_api_key, semaphore=None, engine="text-davinci-003"
+    txt: str,
+    openai_api_key: Optional[str],
+    semaphore: Optional[asyncio.Semaphore] = None,
+    engine: str = "text-davinci-003",
 ):
     if openai_api_key is not None:
         openai.api_key = openai_api_key
 
-    async def call():
+    async def call() -> AsyncGenerator[str, None]:
         response = await openai.Completion.acreate(
             engine=engine,
             prompt=PROMPT.format(text=txt),
@@ -61,7 +67,7 @@ async def summarize_transcript(
         )
 
         async def gen():
-            async for chunk in response:
+            async for chunk in response:  # type: ignore
                 yield chunk["choices"][0]["text"]
             yield "\n"
 
