@@ -54,12 +54,15 @@ def save_summary(url: str, summary: str):
 
     video_id = extract_video_id(url)
 
-    with Session(engine) as session:
-        logger.info(f"Saving summary for {url}")
-        summary = Summary(url=url, video_id=video_id, summary_markdown=summary)
-        session.add(summary)
-        session.commit()
-        logger.info(f"Saved summary for {url}")
+    try:
+        with Session(engine) as session:
+            logger.info(f"Saving summary for {url}")
+            summary = Summary(url=url, video_id=video_id, summary_markdown=summary)
+            session.add(summary)
+            session.commit()
+            logger.info(f"Saved summary for {url}")
+    except Exception as e:
+        logger.error(f"Error saving summary for {url}: {e}")
 
 
 def stream(
