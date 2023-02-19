@@ -47,15 +47,50 @@ def open_ai_token_from_auth(auth):
     return token
 
 
-def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
+def save_summary(url: str, summary: str):
+    from db import engine
+    from schema import Summary
+    from sqlalchemy.orm import Session
+
+    video_id = extract_video_id(url)
+
+    with Session(engine) as session:
+        logger.info(f"Saving summary for {url}")
+        summary = Summary(url=url, video_id=video_id, summary_markdown=summary)
+        session.add(summary)
+        session.commit()
+        logger.info(f"Saved summary for {url}")
+
+
+def stream(
+    generator,
+    use_sse: bool,
+    request: Request,
+    data_fn=lambda x: x,
+    url: Optional[str] = None,
+):
     # this is a helper function to stream data from a generator in a fastapi endpoint
     # It handles both SSE and regular streaming responses and disconnects
     async def stream_obj():
+        # this is a helper function to stream data from a generator
+
+        # accumulate the summary markdown so we can save it to the db
+        summary_markdown = ""
         try:
             async for obj in generator:
                 if obj and not await request.is_disconnected():
                     data = data_fn(obj)
+
+                    # accumulate the summary markdown so we can save it to the db
+                    summary_markdown += data
+
+                    # yield the data
                     yield {"data": json.dumps({"text": data})} if use_sse else str(data)
+            # save the summary markdown to the db if we have a url
+            if url:
+                save_summary(url, summary_markdown)
+
+            # yield a done message
             if use_sse:
                 yield {"data": "[DONE]"}
         except asyncio.CancelledError as e:
@@ -89,7 +124,9 @@ async def youtube_summary_md(
     async_generator = async_generator_summary_timestamps(
         req.url, req.use_whisper, token
     )
-    return stream(async_generator, req.use_sse, request, data_fn=lambda x: x)
+    return stream(
+        async_generator, req.use_sse, request, data_fn=lambda x: x, url=req.url
+    )
 
 
 async def shorten_summary(
