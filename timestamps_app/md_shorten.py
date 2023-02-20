@@ -1,7 +1,13 @@
 import asyncio
+import os
 from typing import AsyncGenerator, Optional
 
-import openai
+import promptlayer
+
+promptlayer.api_key = os.environ.get("PROMPTLAYER_KEY")
+
+# Swap out your 'import openai'
+openai = promptlayer.openai
 
 PROMPT = """
 You are a professional note taker tasked with shortening and organizing a study guide.
@@ -53,6 +59,7 @@ async def shorten_md(
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0.6,
+            pl_tags=["youtube_shorten"],
         )
 
         async def gen():

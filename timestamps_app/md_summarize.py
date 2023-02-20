@@ -1,7 +1,13 @@
 import asyncio
+import os
 from typing import AsyncGenerator, Optional
 
-import openai
+import promptlayer
+
+promptlayer.api_key = os.environ.get("PROMPTLAYER_KEY")
+
+# Swap out your 'import openai'
+openai = promptlayer.openai
 
 PROMPT = """
 You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible.
@@ -57,6 +63,7 @@ async def summarize_transcript(
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0.6,
+            pl_tags=["youtube_summary"],
         )
 
         async def gen():
