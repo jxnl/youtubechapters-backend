@@ -34,7 +34,7 @@ class Segment:
 
 
 async def group_speech_segments(
-    segments: AsyncGenerator[Segment, None], max_length=300
+    segments: AsyncGenerator[Segment, None], max_length=500, min_length=200
 ):
     current_segment = await segments.__anext__()
     current_transcript = current_segment.transcript
@@ -48,8 +48,9 @@ async def group_speech_segments(
         is_pause = (current_segment.start_time - previous_segment.end_time) > 0.1
         is_long = current_segment.start_time - current_start_time > 1
         is_too_long = len(current_transcript) > max_length
+        is_to_short = len(current_transcript) < min_length
 
-        if (is_long and is_pause) or is_too_long:
+        if (is_long and is_pause and not is_to_short) or is_too_long:
             yield Segment(
                 start_time=current_start_time,
                 end_time=previous_segment.end_time,
@@ -107,7 +108,6 @@ async def summary_segments_to_md(
             logger.info(
                 f"Making summary request for {video_id}, request_size: {len(text)}, n_calls: {n_calls}"
             )
-
             async for token in await summarize_transcript(
                 text, openai_api_key=openai_api_key
             ):
