@@ -22,12 +22,15 @@ class Segment:
         self.timestamp = str(timedelta(seconds=self.start_time))
 
     def to_str(self, video_id):
-        return "timestamp:{ts} url:{url}\ntranscript:\n{transcript}".format(
-            ts=self.timestamp,
-            s=self.start_time,
-            url=f"https://youtu.be/{video_id}?t={self.start_time}s",
-            transcript=self.transcript,
-        )
+        if len(self.transcript) > 0:
+            return "timestamp:{ts} url:{url}\ntranscript:\n{transcript}".format(
+                ts=self.timestamp,
+                s=self.start_time,
+                url=f"https://youtu.be/{video_id}?t={self.start_time}s",
+                transcript=self.transcript,
+            ).strip()
+        else:
+            return ""
 
 
 async def group_speech_segments(
@@ -42,7 +45,7 @@ async def group_speech_segments(
         previous_segment = current_segment
         current_segment = segment
 
-        is_pause = (current_segment.start_time - previous_segment.end_time) > 0.01
+        is_pause = (current_segment.start_time - previous_segment.end_time) > 0.1
         is_long = current_segment.start_time - current_start_time > 1
         is_too_long = len(current_transcript) > max_length
 
@@ -53,7 +56,7 @@ async def group_speech_segments(
                 transcript=current_transcript.strip(),
                 from_whisper=from_whisper,
             )
-            current_transcript = ""
+            current_transcript = current_segment.transcript
             current_start_time = current_segment.start_time
         else:
             current_transcript += " " + current_segment.transcript
@@ -102,8 +105,9 @@ async def summary_segments_to_md(
         else:
             n_calls += 1
             logger.info(
-                f"Making summary request for {video_id}, requet_size: {len(text)}, n_calls: {n_calls}"
+                f"Making summary request for {video_id}, request_size: {len(text)}, n_calls: {n_calls}"
             )
+
             async for token in await summarize_transcript(
                 text, openai_api_key=openai_api_key
             ):
