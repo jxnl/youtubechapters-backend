@@ -1,13 +1,7 @@
 import asyncio
-import os
 from typing import AsyncGenerator, Optional
 
-import promptlayer
-
-promptlayer.api_key = os.environ.get("PROMPTLAYER_KEY")
-
-# Swap out your 'import openai'
-openai = promptlayer.openai
+import openai
 
 PROMPT = """
 You are a professional note taker tasked with shortening and organizing a study guide.

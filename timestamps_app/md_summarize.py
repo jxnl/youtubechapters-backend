@@ -1,13 +1,7 @@
 import asyncio
-import os
 from typing import AsyncGenerator, Optional
 
-import promptlayer
-
-promptlayer.api_key = os.environ.get("PROMPTLAYER_KEY")
-
-# Swap out your 'import openai'
-openai = promptlayer.openai
+import openai
 
 PROMPT = """
 You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible.
