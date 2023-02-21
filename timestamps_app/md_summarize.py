@@ -57,7 +57,6 @@ async def summarize_transcript(
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0.6,
-            pl_tags=["youtube_summary"],
         )
 
         async def gen():
