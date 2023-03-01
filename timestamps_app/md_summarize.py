@@ -22,14 +22,13 @@ To format your markdown file, follow this structure:
 
 Some tips to keep in mind:
 
+* Use [] to denote timestamps and () to link to the corresponding part of the video.
 * Use only content from the given transcript, without adding any additional information.
-* Pay close attention to the speaker's key points and take thorough notes.
 * Use subheadings and bullet points to organize your notes and make them easier to read and understand. When relevant, include timestamps to link to the corresponding part of the video.
 * Create descriptive titles that accurately reflect the content of each section.
-* Highlight any memorable phrases or quotes to aid recall or as evidence.
 * Use bullet points to describe important steps and insights, being as comprehensive as possible.
 * Avoid repeating yourself in either the content or the timestamp.
-* Cite and include timestamps whenever possible by linking to the relevant URL in a block.
+
 Content:
 
 {text} 
