@@ -4,10 +4,13 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
+from db import engine
 from fastapi import Header, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
+from schema import Summary
 from segment import group_speech_segments, shorten_summary_to_md, summary_segments_to_md
+from sqlalchemy.orm import Session
 from sse_starlette import EventSourceResponse
 from transcribe import transcribe_youtube
 
@@ -47,16 +50,11 @@ def open_ai_token_from_auth(auth):
     return token
 
 
-def save_summary(url: str, summary: str):
-    from db import engine
-    from schema import Summary
-    from sqlalchemy.orm import Session
-
+async def save_summary(url: str, summary: str):
     video_id = extract_video_id(url)
-
+    logger.info(f"Saving summary for {url}")
     try:
         with Session(engine) as session:
-            logger.info(f"Saving summary for {url}")
             summary = Summary(url=url, video_id=video_id, summary_markdown=summary)
             session.add(summary)
             session.commit()
@@ -91,7 +89,7 @@ def stream(
                     yield {"data": json.dumps({"text": data})} if use_sse else str(data)
             # save the summary markdown to the db if we have a url
             if url:
-                save_summary(url, summary_markdown)
+                asyncio.ensure_future(save_summary(url, summary_markdown))
 
             # yield a done message
             if use_sse:
