@@ -102,6 +102,10 @@ async def summary_segments_to_md(
 
         if len(text) < chunk:
             text += f"\n\n{block.to_str(video_id)}"
+        elif n_calls > 10:
+            yield "\n *Summary request limit reached*"
+            text = None
+            break
         else:
             n_calls += 1
             logger.info(
@@ -114,7 +118,7 @@ async def summary_segments_to_md(
                 yield token
             text = ""
             logger.info(f"Finished n={n_calls} summary request for {video_id}")
-    if text != "":
+    if text is not None and text != "":
         n_calls += 1
         logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
         async for token in await summarize_transcript(
