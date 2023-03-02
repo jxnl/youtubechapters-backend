@@ -43,14 +43,18 @@ def cache_read(video_id: str):
 
 
 def async_generator_summary_timestamps(
-    url: str, use_whisper: bool = False, openai_api_key: Optional[str] = None
+    url: str,
+    use_cache: bool = True,
+    use_whisper: bool = False,
+    openai_api_key: Optional[str] = None,
 ):
     video_id = extract_video_id(url)
 
-    summary = cache_read(video_id)
-    if summary:
-        logger.info(f"Returning cached summary for {url}")
-        return summary
+    if use_cache:
+        summary = cache_read(video_id)
+        if summary:
+            logger.info(f"Returning cached summary for {url}")
+            return summary
 
     phrases = transcribe_youtube(video_id, use_whisper)
     phrases = group_speech_segments(phrases, max_length=300)
@@ -140,6 +144,7 @@ class SummaryPayload:
     url: str
     use_sse: bool = False
     use_whisper: bool = False
+    use_cache: bool = True
 
 
 @dataclass
@@ -153,7 +158,7 @@ async def youtube_summary_md(
 ):
     token = open_ai_token_from_auth(authorization)
     async_generator = async_generator_summary_timestamps(
-        req.url, req.use_whisper, token
+        req.url, req.use_whisper, req.use_cache, openai_api_key=token
     )
     return stream(
         async_generator, req.use_sse, request, data_fn=lambda x: x, url=req.url

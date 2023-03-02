@@ -45,6 +45,8 @@ async def group_speech_segments(
         previous_segment = current_segment
         current_segment = segment
 
+        current_segment.transcript.replace("[Music]", "")
+
         is_pause = (current_segment.start_time - previous_segment.end_time) > 0.1
         is_long = current_segment.start_time - current_start_time > 1
         is_too_long = len(current_transcript) > max_length

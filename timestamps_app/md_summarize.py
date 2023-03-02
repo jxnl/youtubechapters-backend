@@ -16,18 +16,19 @@ To format your markdown file, follow this structure:
 
     Use bullet points to provide a detailed description of key points and insights.
 
-    # [HH:MM:SS](https://youtu.be/video_id?t=XXs) Descriptive Title
-
     Repeat the above structure as necessary, and use subheadings to organize your notes.
 
 Some tips to keep in mind:
 
 * Use [] to denote timestamps and () to link to the corresponding part of the video.
-* Use only content from the given transcript, without adding any additional information.
 * Use subheadings and bullet points to organize your notes and make them easier to read and understand. When relevant, include timestamps to link to the corresponding part of the video.
 * Create descriptive titles that accurately reflect the content of each section.
 * Use bullet points to describe important steps and insights, being as comprehensive as possible.
 * Avoid repeating yourself in either the content or the timestamp.
+* Only create a new section when the topic changes. If the topic is related to the previous section, use a subheading instead.
+* Do not mention anything if its only playing music and if nothing happens don't write anything.
+* Only mention things that are important and relevant to the topic.
+* Use only content from the transcript. Do not add any additional information.
 
 Content:
 
@@ -57,14 +58,14 @@ async def summarize_transcript(
             max_tokens=2000,
             temperature=0,
             top_p=1,
-            frequency_penalty=0,
+            frequency_penalty=0.6,
             presence_penalty=0.6,
         )
 
         async def gen():
             async for chunk in response:  # type: ignore
                 yield chunk["choices"][0]["delta"].get("content", "")
-            yield "\n"
+            yield "\n\n"
 
         return gen()
 
