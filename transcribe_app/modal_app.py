@@ -1,11 +1,15 @@
+import asyncio
 import json
-import modal
+from dataclasses import dataclass
 
-from api import TranscriptionPayload, stream
+import modal
+import whisper
 from download import download_youtube_video
 from fastapi import Request
+from fastapi.responses import StreamingResponse
+from loguru import logger
+from sse_starlette import EventSourceResponse
 from transcribe import transcribe
-import whisper
 
 
 def download_models():
@@ -41,15 +45,44 @@ stub = modal.Stub("youtube", image=image)
 model = whisper.load_model("base")
 
 
+def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
+    # this is a helper function to stream data from a generator in a fastapi endpoint
+    # It handles both SSE and regular streaming responses and disconnects
+    async def stream_obj():
+        try:
+            async for obj in generator:
+                if obj and not await request.is_disconnected():
+                    data = data_fn(obj)
+                    yield {"data": str(data)} if use_sse else str(data)
+            if use_sse:
+                yield {"data": "[DONE]"}
+        except asyncio.CancelledError as e:
+            logger.info(f"Streaming canceled.")
+            raise e
+
+    response = EventSourceResponse if use_sse else StreamingResponse
+    return response(
+        stream_obj(),
+        media_type="text/plain",
+    )
+
+
+@dataclass
+class TranscriptionPayload:
+    url: str
+    use_sse: bool = False
+    model: str = "tiny"
+
+
 @stub.webhook(method="POST", gpu="any")
-async def stream_transcription(req: TranscriptionPayload, request: Request):
+async def stream_transcription_v2(req: TranscriptionPayload, request: Request):
     path = download_youtube_video(req.url)
     generator = transcribe(model, path)
     return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])
 
 
 @stub.webhook(method="POST", gpu="any")
-async def stream_transcription_segment(req: TranscriptionPayload, request: Request):
+async def stream_transcription_segment_v2(req: TranscriptionPayload, request: Request):
     path = download_youtube_video(req.url)
     generator = transcribe(model, path)
     return stream(
