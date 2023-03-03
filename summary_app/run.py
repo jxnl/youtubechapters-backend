@@ -158,7 +158,10 @@ async def youtube_summary_md(
 ):
     token = open_ai_token_from_auth(authorization)
     async_generator = async_generator_summary_timestamps(
-        req.url, req.use_whisper, req.use_cache, openai_api_key=token
+        url=req.url,
+        use_whisper=req.use_whisper,
+        use_cache=req.use_cache,
+        openai_api_key=token,
     )
     return stream(
         async_generator, req.use_sse, request, data_fn=lambda x: x, url=req.url
