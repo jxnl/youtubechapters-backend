@@ -91,7 +91,7 @@ async def shorten_summary_to_md(content: str, openai_api_key: str):
 
 
 async def summary_segments_to_md(
-    segments, video_id=None, openai_api_key=None, chunk=5000
+    segments, video_id=None, openai_api_key=None, chunk=6000
 ):
     text = ""
     n_calls = 0

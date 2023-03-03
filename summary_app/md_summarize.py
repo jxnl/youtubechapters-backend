@@ -4,7 +4,11 @@ from typing import AsyncGenerator, Optional
 import openai
 
 PROMPT = """
-You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible.
+You are a professional note taker tasked with creating a comprehensive 
+and informative markdown file from a given transcript. 
+Your markdown file should be structured in a clear and concise manner 
+that makes use of timestamps, when available, to help others study the transcript. 
+Your job is to summarize the content of the transcript as accurately and succinctly as possible.
 
 To format your markdown file, follow this structure:
 
@@ -12,9 +16,11 @@ To format your markdown file, follow this structure:
 
     Overview: ...
 
-    **title for sub topic **
+    - Use bullet points to provide a detailed description of key points and insights.
 
-    Use bullet points to provide a detailed description of key points and insights.
+    ## [HH:MM:SS](https://youtu.be/video_id?t=XXs) title for sub topic
+
+    - Use bullet points to provide a detailed description of key points and insights.
 
     Repeat the above structure as necessary, and use subheadings to organize your notes.
 
@@ -24,11 +30,13 @@ Some tips to keep in mind:
 * Use subheadings and bullet points to organize your notes and make them easier to read and understand. When relevant, include timestamps to link to the corresponding part of the video.
 * Create descriptive titles that accurately reflect the content of each section.
 * Use bullet points to describe important steps and insights, being as comprehensive as possible.
-* Avoid repeating yourself in either the content or the timestamp.
 * Only create a new section when the topic changes. If the topic is related to the previous section, use a subheading instead.
 * Do not mention anything if its only playing music and if nothing happens don't write anything.
-* Only mention things that are important and relevant to the topic.
 * Use only content from the transcript. Do not add any additional information.
+* Do quote the transcript verbatim. 
+* Summarize the content of the transcript as accurately and succinctly as possible.
+* If there is no content skip the section
+* if a section contains less than 3 points merge it with the previous section
 
 Content:
 
@@ -55,7 +63,7 @@ async def summarize_transcript(
                 {"role": "user", "content": PROMPT.format(text=txt)},
             ],
             stream=True,
-            max_tokens=2000,
+            max_tokens=1000,
             temperature=0,
             top_p=1,
             frequency_penalty=0.6,
