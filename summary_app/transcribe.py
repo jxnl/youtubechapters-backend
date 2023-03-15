@@ -1,10 +1,13 @@
 import json
+import os
 from typing import AsyncGenerator
 
 import requests
 from loguru import logger
 from segment import Segment
 from youtube_transcript_api import YouTubeTranscriptApi
+
+TRAN_URL = os.environ.get("TRAN_URL")
 
 
 def create_youtube_url(video_id):
@@ -40,7 +43,7 @@ async def transcribe_youtube(
 
 async def _transcribe_youtube_whisper(video_id, model) -> AsyncGenerator[Segment, None]:
     # this function will try to get the transcript from whisper on a remote gpu
-    url = "https://jxnl--youtube-stream-transcription-segment.modal.run"
+    url = TRAN_URL
 
     youtube = create_youtube_url(video_id)
     data = {"url": youtube, "use_sse": True, "model": model}
