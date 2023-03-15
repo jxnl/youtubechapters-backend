@@ -37,6 +37,7 @@ Some tips to keep in mind:
 * Summarize the content of the transcript as accurately and succinctly as possible.
 * If there is no content skip the section
 * if a section contains less than 3 points merge it with the previous section
+* Make a new line after each # or ## and before each bullet point
 
 Content:
 
