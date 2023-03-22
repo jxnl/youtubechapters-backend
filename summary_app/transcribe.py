@@ -24,7 +24,20 @@ async def transcribe_youtube(
     else:
         # this function will try to get the transcript from youtube
         try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+
+            # Get either 'en' or the first generated transcript
+            language_code = None
+            for t in transcript_list:
+                if t.is_generated:
+                    language_code = t.language_code
+                    break
+
+            logger.info(f"Transcript {video_id} language code: {language_code}")
+
+            transcript = YouTubeTranscriptApi.get_transcript(
+                video_id, ("en", language_code)
+            )
             logger.info("Transcript found on youtube no need to download video")
             for t in transcript:
                 yield Segment(
