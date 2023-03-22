@@ -104,6 +104,10 @@ async def summary_segments_to_md(
 
         if len(text) < chunk:
             text += f"\n\n{block.to_str(video_id)}"
+        elif n_calls > 10:
+            yield "\n *Summary request limit reached*"
+            text = None
+            break
         else:
             n_calls += 1
             logger.info(
