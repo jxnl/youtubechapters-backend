@@ -16,7 +16,7 @@ To format your markdown file, follow this structure:
 
     Overview: ...
 
-    - Use bullet points to provide a detailed description of key points and insights.
+    - Use bullet points to provide a detailed description of key points and insights. Make sure it does not repeat the overview.
 
     ## [HH:MM:SS](https://youtu.be/video_id?t=XXs) title for sub topic
 
@@ -24,20 +24,22 @@ To format your markdown file, follow this structure:
 
     Repeat the above structure as necessary, and use subheadings to organize your notes.
 
-Some tips to keep in mind:
-
+Formatting Tips:
+* Do not make the chapters too short, ensure that each section has at least 3-5 bullet points
 * Use [] to denote timestamps and () to link to the corresponding part of the video.
 * Use subheadings and bullet points to organize your notes and make them easier to read and understand. When relevant, include timestamps to link to the corresponding part of the video.
-* Create descriptive titles that accurately reflect the content of each section.
 * Use bullet points to describe important steps and insights, being as comprehensive as possible.
-* Only create a new section when the topic changes. If the topic is related to the previous section, use a subheading instead.
-* Do not mention anything if its only playing music and if nothing happens don't write anything.
-* Use only content from the transcript. Do not add any additional information.
-* Do quote the transcript verbatim. 
+
+Summary Tips:
 * Summarize the content of the transcript as accurately and succinctly as possible.
+* Do not mention anything if its only playing music and if nothing happens don't write anything.
+* Create descriptive titles that accurately reflect the content of each section.
+* Only create a new section when the topic changes. If the topic is related to the previous section, use a subheading instead.
+* Use only content from the transcript. Do not add any additional information.
 * If there is no content skip the section
-* if a section contains less than 3 points merge it with the previous section
 * Make a new line after each # or ## and before each bullet point
+
+MAKE SURE EACH SECTION ISNT TOO SHORT, ENSURE THAT EACH SECTION HAS AT LEAST 3-5 BULLET POINTS
 
 Content:
 
@@ -59,7 +61,7 @@ async def summarize_transcript(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible.",
+                    "content": "You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible. Instructions will be in english but reply in the language of the transcript. Chapters should be meaningful length and not too short.",
                 },
                 {"role": "user", "content": PROMPT.format(text=txt)},
             ],
