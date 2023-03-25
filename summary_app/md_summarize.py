@@ -4,17 +4,13 @@ from typing import AsyncGenerator, Optional
 import openai
 
 PROMPT = """
-You are a professional note taker tasked with creating a comprehensive 
-and informative markdown file from a given transcript. 
-Your markdown file should be structured in a clear and concise manner 
-that makes use of timestamps, when available, to help others study the transcript. 
-Your job is to summarize the content of the transcript as accurately and succinctly as possible.
+Summarize the transcript in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Chapters should be meaningful length and not too short. Respond in the same language as the transcript if it is not english.
 
 To format your markdown file, follow this structure:
 
     # [HH:MM:SS](https://youtu.be/video_id?t=XXs) Descriptive Title
 
-    Overview: ...
+    <overview of the video>
 
     - Use bullet points to provide a detailed description of key points and insights. Make sure it does not repeat the overview.
 
@@ -31,25 +27,18 @@ Formatting Tips:
 * Use bullet points to describe important steps and insights, being as comprehensive as possible.
 
 Summary Tips:
-* Summarize the content of the transcript as accurately and succinctly as possible.
-* Do not mention anything if its only playing music and if nothing happens don't write anything.
-* Create descriptive titles that accurately reflect the content of each section.
-* Only create a new section when the topic changes. If the topic is related to the previous section, use a subheading instead.
+* Do not mention anything if its only playing music and if nothing happens don't include it in the notes.
 * Use only content from the transcript. Do not add any additional information.
-* If there is no content skip the section
 * Make a new line after each # or ## and before each bullet point
-
-MAKE SURE EACH SECTION ISNT TOO SHORT, ENSURE THAT EACH SECTION HAS AT LEAST 3-5 BULLET POINTS
-
-Content:
-
-{text} 
+* Titles should be informative or even a question that the video answers
+* Titles should not be conclusions since you may only be getting a small part of the video
 """
 
 
 async def summarize_transcript(
     txt: str,
     openai_api_key: Optional[str],
+    language: str = "en",
     semaphore: Optional[asyncio.Semaphore] = None,
 ):
     if openai_api_key is not None:
@@ -61,9 +50,21 @@ async def summarize_transcript(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Your job is to summarize the content of the transcript as accurately and succinctly as possible. Instructions will be in english but reply in the language of the transcript. Chapters should be meaningful length and not too short.",
+                    "content": f"You are professional note taker tasked with creating a comprehensive and informative markdown file from a given transcript. Your markdown file should be structured in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Notes should be in language code is `{language}` and should be written in markdown format.",
                 },
-                {"role": "user", "content": PROMPT.format(text=txt)},
+                {
+                    "role": "user",
+                    "content": f"I have added a feature that forces you to response only in `locale={language}` and markdown format while creating the notes.",
+                },
+                {
+                    "role": "assistant",
+                    "content": f"Understood thank you.From now I will only response with `locale={language}`",
+                },
+                {
+                    "role": "user",
+                    "content": txt,
+                },
+                {"role": "user", "content": PROMPT},
             ],
             stream=True,
             max_tokens=1000,

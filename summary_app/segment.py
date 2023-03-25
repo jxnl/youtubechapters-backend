@@ -15,6 +15,7 @@ class Segment:
     transcript_length: int = field(init=False, default=0)
     timestamp: str = field(init=False, repr=True)
     from_whisper: bool = field(default=False)
+    language: str = field(default="en")
 
     def __post_init__(self):
         self.transcript_length = len(self.transcript)
@@ -23,12 +24,16 @@ class Segment:
 
     def to_str(self, video_id):
         if len(self.transcript) > 0:
-            return "timestamp:{ts} url:{url}\ntranscript:\n{transcript}".format(
-                ts=self.timestamp,
-                s=self.start_time,
-                url=f"https://youtu.be/{video_id}?t={self.start_time}s",
-                transcript=self.transcript,
-            ).strip()
+            return (
+                "language:{lang} timestamp:{ts} url:{url}\ntranscript:{transcript}".format(
+                    lang=self.language,
+                    ts=self.timestamp,
+                    s=self.start_time,
+                    url=f"https://youtu.be/{video_id}?t={self.start_time}s",
+                    transcript=self.transcript,
+                ).strip()
+                + "\n"
+            )
         else:
             return ""
 
@@ -53,6 +58,7 @@ async def group_speech_segments(
 
         if (is_long and is_pause) or is_too_long:
             yield Segment(
+                language=current_segment.language,
                 start_time=current_start_time,
                 end_time=previous_segment.end_time,
                 transcript=current_transcript.strip(),
@@ -111,7 +117,7 @@ async def summary_segments_to_md(
             )
 
             async for token in await summarize_transcript(
-                text, openai_api_key=openai_api_key
+                text, openai_api_key=openai_api_key, language=block.language
             ):
                 yield token
             text = ""
@@ -120,7 +126,7 @@ async def summary_segments_to_md(
         n_calls += 1
         logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
         async for token in await summarize_transcript(
-            text, openai_api_key=openai_api_key
+            text, openai_api_key=openai_api_key, language=block.language
         ):
             yield token
     logger.info(f"Finished summary request for {video_id} in {n_calls} calls")

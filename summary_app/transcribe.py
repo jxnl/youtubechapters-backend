@@ -41,6 +41,7 @@ async def transcribe_youtube(
             logger.info("Transcript found on youtube no need to download video")
             for t in transcript:
                 yield Segment(
+                    language=language_code or "en",
                     start_time=t["start"],
                     end_time=t["start"] + t["duration"],
                     transcript=t["text"],
