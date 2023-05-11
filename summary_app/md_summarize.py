@@ -3,6 +3,8 @@ from typing import AsyncGenerator, Optional
 
 import openai
 
+openai.api_base = "https://oai.hconeai.com/v1"
+
 PROMPT = """
 Summarize the transcript in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Chapters should be meaningful length and not too short. Respond in the same language as the transcript if it is not english.
 
@@ -32,12 +34,15 @@ Summary Tips:
 * Make a new line after each # or ## and before each bullet point
 * Titles should be informative or even a question that the video answers
 * Titles should not be conclusions since you may only be getting a small part of the video
+
+Keep it short!
 """
 
 
 async def summarize_transcript(
     txt: str,
     openai_api_key: Optional[str],
+    video_id: Optional[str] = None,
     language: str = "en",
     semaphore: Optional[asyncio.Semaphore] = None,
 ):
@@ -47,6 +52,11 @@ async def summarize_transcript(
     async def call() -> AsyncGenerator[str, None]:
         response = await openai.ChatCompletion.acreate(
             model="gpt-3.5-turbo",
+            user="youtube@jxnl.co",
+            headers={
+                "Helicone-Cache-Enabled": "true",
+                "Helicone-Property-VideoId": video_id,
+            },
             messages=[
                 {
                     "role": "system",
@@ -67,7 +77,7 @@ async def summarize_transcript(
                 {"role": "user", "content": PROMPT},
             ],
             stream=True,
-            max_tokens=1000,
+            max_tokens=500,
             temperature=0,
             top_p=1,
             frequency_penalty=0.6,
