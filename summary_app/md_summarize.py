@@ -3,8 +3,6 @@ from typing import AsyncGenerator, Optional
 
 import openai
 
-openai.api_base = "https://oai.hconeai.com/v1"
-
 PROMPT = """
 Summarize the transcript in a clear and concise manner that makes use of timestamps, when available, to help others study the transcript. Chapters should be meaningful length and not too short. Respond in the same language as the transcript if it is not english.
 
@@ -51,12 +49,7 @@ async def summarize_transcript(
 
     async def call() -> AsyncGenerator[str, None]:
         response = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo",
-            user="youtube@jxnl.co",
-            headers={
-                "Helicone-Cache-Enabled": "true",
-                "Helicone-Property-VideoId": video_id,
-            },
+            model="gpt-3.5-turbo-0613",
             messages=[
                 {
                     "role": "system",
