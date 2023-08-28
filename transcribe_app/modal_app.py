@@ -3,11 +3,11 @@ import json
 from dataclasses import dataclass
 
 import modal
-import whisper
 from download import download_youtube_video
 from fastapi import Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
+from modal import web_endpoint
 from sse_starlette import EventSourceResponse
 from transcribe import transcribe
 
@@ -42,8 +42,6 @@ image = (
 
 stub = modal.Stub("youtube", image=image)
 
-model = whisper.load_model("base")
-
 
 def stream(generator, use_sse: bool, request: Request, data_fn=lambda x: x):
     # this is a helper function to stream data from a generator in a fastapi endpoint
@@ -74,15 +72,23 @@ class TranscriptionPayload:
     model: str = "tiny"
 
 
-@stub.webhook(method="POST", gpu="any")
+@stub.function(gpu="A100")
+@web_endpoint(method="POST")
 async def stream_transcription_v2(req: TranscriptionPayload, request: Request):
+    import whisper
+
+    model = whisper.load_model(req.model)
     path = download_youtube_video(req.url)
     generator = transcribe(model, path)
     return stream(generator, req.use_sse, request, data_fn=lambda x: x["text"])
 
 
-@stub.webhook(method="POST", gpu="any")
+@stub.function(gpu="A100")
+@web_endpoint(method="POST")
 async def stream_transcription_segment_v2(req: TranscriptionPayload, request: Request):
+    import whisper
+
+    model = whisper.load_model(req.model)
     path = download_youtube_video(req.url)
     generator = transcribe(model, path)
     return stream(
