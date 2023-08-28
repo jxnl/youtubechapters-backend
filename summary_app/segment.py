@@ -85,7 +85,7 @@ async def shorten_summary_to_md(content: str, openai_api_key: str):
     chapters = content.strip().split("# ")
 
     for chapter in chapters:
-        if len(text) > 5000:
+        if len(text) > 5000 * 4:
             logger.info(f"Shortening {len(text)} characters")
             async for token in await shorten_md(text, openai_api_key=openai_api_key):
                 yield token
@@ -99,7 +99,7 @@ async def shorten_summary_to_md(content: str, openai_api_key: str):
 
 
 async def summary_segments_to_md(
-    segments, video_id=None, openai_api_key=None, chunk=7000
+    segments, video_id=None, openai_api_key=None, chunk=7000 * 4
 ):
     text = ""
     n_calls = 0
@@ -119,7 +119,10 @@ async def summary_segments_to_md(
             )
 
             async for token in await summarize_transcript(
-                text, video_id=video_id, openai_api_key=openai_api_key, language=block.language
+                text,
+                video_id=video_id,
+                openai_api_key=openai_api_key,
+                language=block.language,
             ):
                 yield token
             text = ""
@@ -128,7 +131,10 @@ async def summary_segments_to_md(
         n_calls += 1
         logger.info(f"Making summary request for {video_id}, n_calls: {n_calls}")
         async for token in await summarize_transcript(
-            text, video_id=video_id, openai_api_key=openai_api_key, language=block.language
+            text,
+            video_id=video_id,
+            openai_api_key=openai_api_key,
+            language=block.language,
         ):
             yield token
     logger.info(f"Finished summary request for {video_id} in {n_calls} calls")

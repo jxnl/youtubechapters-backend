@@ -49,7 +49,7 @@ async def summarize_transcript(
 
     async def call() -> AsyncGenerator[str, None]:
         response = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo-0613",
+            model="gpt-3.5-turbo-16k",
             messages=[
                 {
                     "role": "system",

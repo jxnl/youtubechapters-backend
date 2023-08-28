@@ -4,7 +4,6 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-from db import engine
 from fastapi import Header, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
@@ -26,36 +25,12 @@ def extract_video_id(url: str) -> str:
         raise ValueError("Invalid youtube url")
 
 
-def cache_read(video_id: str):
-    with Session(engine) as session:
-        summary = session.query(Summary).filter_by(video_id=video_id).first()
-        if summary and summary.summary_markdown:
-            logger.info(f"Cache hit for video_id={video_id}")
-
-            async def summary_generator():
-                for line in summary.summary_markdown.splitlines():
-                    yield line
-                    yield "\n"
-
-            return summary_generator()
-        else:
-            return None
-
-
 def async_generator_summary_timestamps(
     url: str,
-    use_cache: bool = True,
     use_whisper: bool = False,
     openai_api_key: Optional[str] = None,
 ):
     video_id = extract_video_id(url)
-
-    if use_cache:
-        summary = cache_read(video_id)
-        if summary:
-            logger.info(f"Returning cached summary for {url}")
-            return summary
-
     phrases = transcribe_youtube(video_id, use_whisper)
     phrases = group_speech_segments(phrases, max_length=300)
     phrases = summary_segments_to_md(
@@ -74,27 +49,6 @@ def open_ai_token_from_auth(auth):
         return None
     _, token = auth.split(" ")
     return token
-
-
-async def save_summary(url: str, summary_markdown: str):
-    video_id = extract_video_id(url)
-    logger.info(f"Saving summary for {url}")
-    try:
-        # save the summary markdown to the db if it doesn't already exist
-        with Session(engine) as session:
-            summary_obj = session.query(Summary).filter_by(video_id=video_id).first()
-            if summary_obj and summary_obj.summary_markdown:
-                logger.info(f"Summary already exists for {url} - skipping save")
-                return
-            else:
-                summary_markdown = Summary(
-                    url=url, video_id=video_id, summary_markdown=summary_markdown
-                )
-                session.add(summary_markdown)
-                session.commit()
-                logger.info(f"Saved summary for {url}")
-    except Exception as e:
-        logger.error(f"Error saving summary for {url}: {e}")
 
 
 def stream(
@@ -121,9 +75,6 @@ def stream(
 
                     # yield the data
                     yield {"data": json.dumps({"text": data})} if use_sse else str(data)
-            # save the summary markdown to the db if we have a url
-            if url:
-                asyncio.ensure_future(save_summary(url, summary_markdown))
 
             # yield a done message
             if use_sse:
@@ -160,7 +111,6 @@ async def youtube_summary_md(
     async_generator = async_generator_summary_timestamps(
         url=req.url,
         use_whisper=req.use_whisper,
-        use_cache=req.use_cache,
         openai_api_key=token,
     )
     return stream(
